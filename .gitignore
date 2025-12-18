@@ -5,3 +5,4 @@
 ./resources/.jpg
 ./resources/.png
 ./build
+*.exe

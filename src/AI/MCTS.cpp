@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-double C_PUCT = 1.0; // UCT评估参数
+double C_PUCT = 1.414; // UCT评估参数
 
 AIGameState::AIGameState(const GameState& state_2)
     : GameState(state_2) {
@@ -175,7 +175,8 @@ double MCTSNode::getUCTValue() const { // 计算 UCT 值
     }
     // UCT = 收益 / 访问次数 + 探索项
     // 探索项 (C_PUCT * sqrt(log(visits_of_parent) / visits_of_this_node))
-    return wins / visits + C_PUCT * std::sqrt(std::log(parent->visits) / visits);
+    return wins / visits + 
+            C_PUCT * std::sqrt(std::log(static_cast<double>(parent->visits)) / static_cast<double>(visits));
 }
 
 MCTSNode* MCTSNode::selectBestChild() { // 选择最佳子节点
@@ -205,7 +206,6 @@ MCTSNode* MCTSNode::expand(std::mt19937& randomEngine) { // 扩展一个子节�
     MCTSNode* new_child = new MCTSNode(new_state, move_to_expand, this);
     if (!new_child->isTerminal()) { // 如果子节点不是终止状态，才需要生成合法移动
         new_child->untriedMoves = new_child->state.getValidMoves();
-        // 建议：此处也应该打乱一下 untriedMoves，增加探索的随机性
         std::shuffle(new_child->untriedMoves.begin(), new_child->untriedMoves.end(), randomEngine);
     }
     children.push_back(new_child);
@@ -274,7 +274,10 @@ ChessMove MCTS::findBestMove() { // MCTS 搜索主循环
         if (timeLimitMs > 0) {
             auto current_time = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time);
-            if (duration.count() >= timeLimitMs) break;
+            if (duration.count() >= timeLimitMs) {
+                qDebug() << totalSimulations << "次迭代: " << duration.count() << "ms";
+                break;
+            }
         }
         MCTSNode* node = root;
         // 选择: 从根节点开始，通过UCT值选择最佳子节点，直到遇到未完全扩展的节点或叶子节点
