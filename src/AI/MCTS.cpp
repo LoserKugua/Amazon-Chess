@@ -9,7 +9,7 @@ To-do List:
 3.C_PUCT的变化
 */
 double C_PUCT = 1.414; // UCT评估参数
-int simul_times = 4;
+int simul_times = 9;
 
 AIGameState::AIGameState(const GameState& state_2)
     : GameState(state_2) {
@@ -57,8 +57,7 @@ void AIGameState::getValidPoses(const ChessPosition &pos, std::vector<ChessPosit
     }
 }
 
-std::vector<ChessMove> AIGameState::getValidMoves() {
-    std::vector<ChessMove> result;
+void AIGameState::getValidMoves(std::vector<ChessMove>& result) {
     if(CurrentPlayer == 0) { // 0到黑
         ChessPosition blackPos;
         std::vector<ChessPosition> queenPoses;
@@ -101,7 +100,6 @@ std::vector<ChessMove> AIGameState::getValidMoves() {
             }
         }
     }
-    return result;
 }
 
 void AIGameState::makeMove(const ChessMove &move) {
@@ -216,7 +214,7 @@ MCTSNode* MCTSNode::expand(std::mt19937& randomEngine) { // 扩展一个子节�
     new_state.makeMove(move_to_expand);
     MCTSNode* new_child = new MCTSNode(new_state, move_to_expand, this);
     if (!new_child->isTerminal()) { // 如果子节点不是终止状态，才需要生成合法移动
-        new_child->untriedMoves = new_child->state.getValidMoves();
+        new_child->state.getValidMoves(new_child->untriedMoves);
         std::shuffle(new_child->untriedMoves.begin(), new_child->untriedMoves.end(), randomEngine);
     }
     children.emplace_back(new_child);
@@ -231,7 +229,8 @@ int MCTSNode::simulate(std::mt19937& randomEngine)  {
     AIGameState current_sim_state = this->state;
     int game_result = current_sim_state.getGameResult();
     while (game_result == 0) { // 游戏未结束
-        std::vector<ChessMove> legal_moves = current_sim_state.getValidMoves();
+        std::vector<ChessMove> legal_moves;
+        current_sim_state.getValidMoves(legal_moves);
         if (legal_moves.empty()) { // 一般用不到
             game_result = (current_sim_state.GetPlayer() == 0) ? 2 : 1;// 0是都没赢1是黑赢2是白赢
             break;
@@ -272,7 +271,7 @@ ChessMove MCTS::findBestMove() { // MCTS 搜索主循环
     int simulations_done = 0;
     // 生成根节点合法移动
     if (root->untriedMoves.empty() && !root->isTerminal()) {
-        root->untriedMoves = root->state.getValidMoves();
+        root->state.getValidMoves(root->untriedMoves);
         std::shuffle(root->untriedMoves.begin(), root->untriedMoves.end(), randomEngine);
     }
     while (true) {
@@ -335,7 +334,8 @@ ChessMove MCTS::findBestMove() { // MCTS 搜索主循环
         qDebug() << "winrate:" << max_win_rate;
         return best_child->move;
     } else { // 出bug了 瞎选
-        std::vector<ChessMove> valid_moves = root->state.getValidMoves();
+        std::vector<ChessMove> valid_moves;
+        root->state.getValidMoves(valid_moves);
         if (!valid_moves.empty()) {
              std::uniform_int_distribution<> distrib(0, valid_moves.size() - 1);
              return valid_moves[distrib(randomEngine)];

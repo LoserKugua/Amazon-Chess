@@ -11,7 +11,7 @@ public:
     AIGameState(const GameState &state_2);
     AIGameState& operator = (const AIGameState &state); // 只用于AI 所以不带历史记录
 
-    std::vector<ChessMove> getValidMoves();
+    void getValidMoves(std::vector<ChessMove>& result);
     bool validPos(const ChessPosition &pos) const;// 判断越界和是不是空位
     void getValidPoses(const ChessPosition &pos, std::vector<ChessPosition>& result); // 获取所有可移动位置 皇后移动位
     void getValidArrows(const ChessPosition &pos, std::vector<ChessPosition>& result); // 获取所有可放障碍位 临近八方向

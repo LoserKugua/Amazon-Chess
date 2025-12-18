@@ -281,7 +281,7 @@ void TwoPlayer::on_tipsButton_clicked() {
     }
     if(tipsMove.GetFrom().x == -1) {
         AIGameState nowState(Engine_2->GetState());
-        MCTS mcts(nowState, 10000 + gameTurns * 100, 1000);
+        MCTS mcts(nowState, 10000 + gameTurns * 300, 1000);
         tipsMove = mcts.findBestMove();
     }
     if(boardGrids[tipsMove.GetFrom().x][tipsMove.GetFrom().y]->getState() == "black") {
