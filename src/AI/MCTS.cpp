@@ -2,8 +2,14 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
-
+/*
+To-do List:
+1.进行simulate策略优化
+2.rave剪枝之类的
+3.C_PUCT的变化
+*/
 double C_PUCT = 1.414; // UCT评估参数
+int simul_times = 4;
 
 AIGameState::AIGameState(const GameState& state_2)
     : GameState(state_2) {
@@ -25,48 +31,49 @@ bool AIGameState::validPos(const ChessPosition &pos) const {
     return Board.IsAvailable(pos);
 }
 
-std::vector<ChessPosition> AIGameState::getValidArrows(const ChessPosition &pos) const {
+void AIGameState::getValidArrows(const ChessPosition &pos, std::vector<ChessPosition>& result) {
     // 八个方向移动
-    std::vector<ChessPosition> result;
+    result.clear();
     for(int i = 0; i <= 7; ++i) {
         int Tx = pos.x + CheckDx[i];
         int Ty = pos.y + CheckDy[i];
         if(validPos((ChessPosition) {Tx, Ty})) {
-            result.push_back((ChessPosition) {Tx, Ty});
+            result.emplace_back((ChessPosition) {Tx, Ty});
         }
     }
-    return result;
 }
 
-std::vector<ChessPosition> AIGameState::getValidPoses(const ChessPosition &pos) const {
+void AIGameState::getValidPoses(const ChessPosition &pos, std::vector<ChessPosition>& result) {
     // 八个方向随机移动
-    std::vector<ChessPosition> result;
+    result.clear();
     for(int i = 0; i <= 7; ++i) {
         int Tx = pos.x + CheckDx[i];
         int Ty = pos.y + CheckDy[i];
         while(validPos((ChessPosition) {Tx, Ty})) {
-            result.push_back((ChessPosition) {Tx, Ty});
+            result.emplace_back((ChessPosition) {Tx, Ty});
             Tx += CheckDx[i];
             Ty += CheckDy[i];
         }
     }
-    return result;
 }
 
 std::vector<ChessMove> AIGameState::getValidMoves() {
     std::vector<ChessMove> result;
     if(CurrentPlayer == 0) { // 0到黑
+        ChessPosition blackPos;
+        std::vector<ChessPosition> queenPoses;
+        std::vector<ChessPosition> arrowPoses;
         for(int i = 0; i <= 3; ++i) {
-            ChessPosition blackPos = Board.GetBlackPos(i);
-            std::vector<ChessPosition> queenPoses = getValidPoses(blackPos);
+            blackPos = Board.GetBlackPos(i);
+            getValidPoses(blackPos, queenPoses);
             for(auto pos : queenPoses) { // 暂时模拟一下移动，然后撤销
                 Board.modify(blackPos, 0);
                 Board.modify(pos, 1);
-                std::vector<ChessPosition> arrowPoses = getValidPoses(pos);
+                getValidPoses(pos, arrowPoses);
                 result.reserve(result.size() + arrowPoses.size());
                 for(auto pos_a : arrowPoses) {
                     ChessMove move(blackPos, pos, pos_a);
-                    result.push_back(move);
+                    result.emplace_back(move);
                 }
                 Board.modify(blackPos, 1);
                 Board.modify(pos, 0);
@@ -74,17 +81,20 @@ std::vector<ChessMove> AIGameState::getValidMoves() {
         }
     }
     else { // 1到白
+        ChessPosition whitePos;
+        std::vector<ChessPosition> queenPoses;
+        std::vector<ChessPosition> arrowPoses;
         for(int i = 0; i <= 3; ++i) {
-            ChessPosition whitePos = Board.GetWhitePos(i);
-            std::vector<ChessPosition> queenPoses = getValidPoses(whitePos);
+            whitePos = Board.GetWhitePos(i);
+            getValidPoses(whitePos, queenPoses);
             for(auto pos : queenPoses) {
                 Board.modify(whitePos, 0);
                 Board.modify(pos, 2);
-                std::vector<ChessPosition> arrowPoses = getValidPoses(pos);
+                getValidPoses(pos, arrowPoses);
                 result.reserve(result.size() + arrowPoses.size());
                 for(auto pos_a : arrowPoses) {
                     ChessMove move(whitePos, pos, pos_a);
-                    result.push_back(move);
+                    result.emplace_back(move);
                 }
                 Board.modify(whitePos, 2);
                 Board.modify(pos, 0);
@@ -132,8 +142,9 @@ void AIGameState::undoMove(const ChessMove &move2) { // 撤销移动
 
 int AIGameState::getGameResult() {// 1黑赢2白赢
     bool blackFlag = true;// 标记黑输了吗
+    std::vector<ChessPosition> Move_8_dir;
     for(int i = 0; i <= 3; ++i) {
-        std::vector<ChessPosition> Move_8_dir = getValidArrows(Board.GetBlackPos(i));
+        getValidArrows(Board.GetBlackPos(i), Move_8_dir);
         if(Move_8_dir.size() != 0) {
             blackFlag = false;
             break;
@@ -145,7 +156,7 @@ int AIGameState::getGameResult() {// 1黑赢2白赢
     }
     bool whiteFlag = true;// 标记白输了吗
     for(int i = 0; i <= 3; ++i) {
-        std::vector<ChessPosition> Move_8_dir = getValidArrows(Board.GetWhitePos(i));
+        getValidArrows(Board.GetBlackPos(i), Move_8_dir);
         if(Move_8_dir.size() != 0) {
             whiteFlag = false;
             break;
@@ -208,7 +219,7 @@ MCTSNode* MCTSNode::expand(std::mt19937& randomEngine) { // 扩展一个子节�
         new_child->untriedMoves = new_child->state.getValidMoves();
         std::shuffle(new_child->untriedMoves.begin(), new_child->untriedMoves.end(), randomEngine);
     }
-    children.push_back(new_child);
+    children.emplace_back(new_child);
     if (untriedMoves.empty()) { // 标记已扩展
         isExpanded = true;
     }
@@ -293,7 +304,11 @@ ChessMove MCTS::findBestMove() { // MCTS 搜索主循环
         int result = leaf->simulate(randomEngine);
         // 回溯: 根据模拟结果更新路径上所有节点的访问次数和胜利次数
         leaf->backpropagate(result);
-        simulations_done++;
+        for(int i = 1; i <= simul_times; ++i) {
+            result = leaf->simulate(randomEngine);
+            leaf->backpropagate(result);
+        }
+        simulations_done += simul_times;
     }
 
     MCTSNode* best_child = nullptr;

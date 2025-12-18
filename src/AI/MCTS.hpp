@@ -13,8 +13,8 @@ public:
 
     std::vector<ChessMove> getValidMoves();
     bool validPos(const ChessPosition &pos) const;// 判断越界和是不是空位
-    std::vector<ChessPosition> getValidPoses(const ChessPosition &pos) const;// 获取所有可移动位置 皇后移动位
-    std::vector<ChessPosition> getValidArrows(const ChessPosition &pos) const;// 获取所有可放障碍位 临近八方向
+    void getValidPoses(const ChessPosition &pos, std::vector<ChessPosition>& result); // 获取所有可移动位置 皇后移动位
+    void getValidArrows(const ChessPosition &pos, std::vector<ChessPosition>& result); // 获取所有可放障碍位 临近八方向
 
     void makeMove(const ChessMove &move);
     void undoMove(const ChessMove &move2);
