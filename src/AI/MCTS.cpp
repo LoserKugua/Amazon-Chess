@@ -2,14 +2,9 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
-/*
-To-do List:
-1.进行simulate策略优化
-2.rave剪枝之类的
-3.C_PUCT的变化
-*/
+
 double C_PUCT = 1.414; // UCT评估参数
-int simul_times = 9;
+int simul_times = 3;
 
 AIGameState::AIGameState(const GameState& state_2)
     : GameState(state_2) {
@@ -58,6 +53,7 @@ void AIGameState::getValidPoses(const ChessPosition &pos, std::vector<ChessPosit
 }
 
 void AIGameState::getValidMoves(std::vector<ChessMove>& result) {
+    result.clear();
     if(CurrentPlayer == 0) { // 0到黑
         ChessPosition blackPos;
         std::vector<ChessPosition> queenPoses;
@@ -201,7 +197,6 @@ MCTSNode* MCTSNode::selectBestChild() { // 选择最佳子节点
     return best_child;
 }
 
-
 MCTSNode* MCTSNode::expand(std::mt19937& randomEngine) { // 扩展一个子节点
     if (untriedMoves.empty()) { // 移动完了 扩展不了
         return this;
@@ -228,8 +223,8 @@ MCTSNode* MCTSNode::expand(std::mt19937& randomEngine) { // 扩展一个子节�
 int MCTSNode::simulate(std::mt19937& randomEngine)  {
     AIGameState current_sim_state = this->state;
     int game_result = current_sim_state.getGameResult();
-    while (game_result == 0) { // 游戏未结束
-        std::vector<ChessMove> legal_moves;
+    std::vector<ChessMove> legal_moves;
+    while (game_result == 0) { // 游戏未结束    
         current_sim_state.getValidMoves(legal_moves);
         if (legal_moves.empty()) { // 一般用不到
             game_result = (current_sim_state.GetPlayer() == 0) ? 2 : 1;// 0是都没赢1是黑赢2是白赢
@@ -285,7 +280,7 @@ ChessMove MCTS::findBestMove() { // MCTS 搜索主循环
             auto current_time = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time);
             if (duration.count() >= timeLimitMs) {
-                qDebug() << totalSimulations << "次迭代: " << duration.count() << "ms";
+                qDebug() << simulations_done << "次迭代: " << duration.count() << "ms";
                 break;
             }
         }

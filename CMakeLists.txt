@@ -45,7 +45,7 @@ add_executable(AmazonChess
 set_target_properties(AmazonChess PROPERTIES OUTPUT_NAME "Amazons")
 
 # 这个东西是拿来不生成debug的终端框用的
-# set_target_properties(AmazonChess PROPERTIES WIN32_EXECUTABLE TRUE)
+set_target_properties(AmazonChess PROPERTIES WIN32_EXECUTABLE TRUE)
 
 target_compile_features(AmazonChess PRIVATE cxx_std_17)
 
