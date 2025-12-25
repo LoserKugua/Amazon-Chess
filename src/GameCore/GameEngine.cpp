@@ -16,7 +16,7 @@ bool GameEngine::GetPlayer() {// 0到黑1到白
     return CurrentState.GetPlayer();
 }
 
-void GameEngine::ChangePlayer(int player) {
+void GameEngine::ChangePlayer(bool player) {
     CurrentState.ChangePlayer(player);
 }
 

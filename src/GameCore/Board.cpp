@@ -88,9 +88,17 @@ ChessPosition GameBoard::GetWhitePos(int index) const {
 }
 
 void GameBoard::BoardDebug() const {
-    qDebug() << "now board:\n";
+    qDebug() << "now board:";
     for(int i = 0; i <= 7; ++i) {
         qDebug() << BoardState[i][0] << ' ' <<  BoardState[i][1] << ' ' << BoardState[i][2] << ' ' << BoardState[i][3] << ' ' << BoardState[i][4] << ' ' << BoardState[i][5] << ' ' << BoardState[i][6] << ' ' << BoardState[i][7];
+    }
+    qDebug() << "black Chess:";
+    for(int i = 0; i <= 3; ++i) {
+        qDebug() << BlackChess[i].x << ' ' << BlackChess[i].y;
+    }
+    qDebug() << "white Chess:";
+    for(int i = 0; i <= 3; ++i) {
+        qDebug() << WhiteChess[i].x << ' ' << WhiteChess[i].y;
     }
 }
 

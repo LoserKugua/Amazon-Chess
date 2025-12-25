@@ -51,8 +51,8 @@ void Settings::setupUI() {
         lastOptionsButton = bgOptions;
     });
     
-    setupMusicUI();
-    // musicSettings = new QWidget(this);
+    // setupMusicUI();
+    musicSettings = new QWidget(this);
     setupBgUI();
 
     setStack = new QStackedWidget(this);
@@ -106,6 +106,13 @@ void Settings::setupMusicUI() { // 切歌ui实现
     setPlayer->setAudioOutput(setAOutput);
     setPlayer->setSource(QUrl(songUrls[currentSongIndex]));
     setPlayer->play();
+    // 检测到播放完毕切歌
+    connect(setPlayer, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
+        if (status == QMediaPlayer::EndOfMedia) {
+            on_nextSongButton_clicked();
+            // qDebug() << "切歌";
+        }
+    });
 
     volumeSlider = new QSlider(Qt::Horizontal, musicSettings);
     volumeSlider->move(100, 130);

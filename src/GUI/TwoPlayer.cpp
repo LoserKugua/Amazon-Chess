@@ -14,6 +14,7 @@ TwoPlayer::TwoPlayer(QWidget *parent)
 {// 整局游戏初始化
     modeTextBlack = "双人模式 当前轮到：黑方";
     modeTextWhite = "双人模式 当前轮到：白方";
+    modeTextEnd = "游戏已结束";
     modeText = new QLabel(modeTextBlack, this);
     modeText->setGeometry(80, 0, 400, 80);
     modeText->setStyleSheet("QLabel{"
@@ -206,6 +207,7 @@ void TwoPlayer::on_loadButton_clicked() {
         isGameOver = Engine_2->GameOver();
         reRender();
         moreMove();
+        // qDebug() << "turn:" << Engine_2->getTurns() << '\n';
         // 在这里这个函数什么都不干
         // 交给oneplayer重写的话就不用扯一堆了
     }
@@ -227,6 +229,10 @@ void TwoPlayer::on_loadButton_clicked() {
     }
     else if(flag == 5) {
         QMessageBox::warning(this, "文件解析出错", "文件内保存的棋盘信息不统一，不是一个正常的棋局",
+                                  QMessageBox::Ok);
+    }
+    else if(flag == 6) {
+        QMessageBox::warning(this, "文件解析出错", "文件内保存的棋盘黑方不是先手",
                                   QMessageBox::Ok);
     }
 }
@@ -266,6 +272,7 @@ void TwoPlayer::on_undoButton_clicked() {
         }
         --gameTurns;
         Engine_2->modifyTurns(gameTurns);
+        // qDebug() << "undo turn:" << gameTurns;
         moreUndo();
     }
 }
@@ -293,6 +300,9 @@ void TwoPlayer::on_tipsButton_clicked() {
         boardGrids[tipsMove.GetFrom().x][tipsMove.GetFrom().y]->setState("whiteChosen");
     }
     boardGrids[tipsMove.GetArrow().x][tipsMove.GetArrow().y]->setState("arrowTP");
+    if(tipsMove.GetFrom() == tipsMove.GetArrow()) {
+        boardGrids[tipsMove.GetArrow().x][tipsMove.GetArrow().y]->setState("arrowRed");
+    }
     buttonSetable(false);
     isTiping = true;
     QMessageBox::information(this, "提示", "点击棋盘退出提示", QMessageBox::Ok);
@@ -300,6 +310,7 @@ void TwoPlayer::on_tipsButton_clicked() {
 
 void TwoPlayer::gameOverJudge() {
     int flag = Engine_2->GameOver();
+    modeText->setText(modeTextEnd);
     if(flag == 0) return;
     if(flag == 1) {
         QMessageBox::information(this, "游戏结束", "恭喜黑方获胜！", QMessageBox::Ok);
@@ -353,7 +364,10 @@ void TwoPlayer::reRender() {
             }
         }
     }
-    if(!Engine_2->GetPlayer()) {
+    if(isGameOver) {
+        modeText->setText(modeTextEnd);
+    }
+    else if(!Engine_2->GetPlayer()) {
         modeText->setText(modeTextBlack);
     }
     else {
@@ -420,7 +434,6 @@ void TwoPlayer::chessPlacing(int col, int row) {
         }
         
         placePres = Engine_2->GetValidMoves((ChessPosition) {col, row});
-        placePres.push_back(chosenChess);// 还好路径可逆 主要是engine写的时候没写gui 适配不好
         placeRender(1);// 渲染arrowPre
 
         chosenChess = (ChessPosition) {col, row};
@@ -435,7 +448,7 @@ void TwoPlayer::arrowPlacing(int col, int row) {
         placeRender(2);// 渲染掉arrowPre
 
         currentMove.ChangeArrow((ChessPosition) {col, row});
-        currentMove.MoveDebug();
+        // currentMove.MoveDebug();
         Engine_2->HistoryPush(currentMove);
         Engine_2->ModifyBoard((ChessPosition) {col, row}, 3);
 
@@ -456,6 +469,9 @@ void TwoPlayer::arrowPlacing(int col, int row) {
         // Engine_2.GetState().GetBoard().WhiteChessDebug();
 
         gameSaved = false;
+        ++gameTurns;
+        Engine_2->modifyTurns(gameTurns);
+        // qDebug() << "move turn:" << gameTurns;
     }
 }
 
@@ -485,8 +501,8 @@ void TwoPlayer::boardClickResponse(int col, int row) {
     else if(placeStage == 2) {
         arrowPlacing(col, row);
         gameOverJudge();
-        ++gameTurns;
-        Engine_2->modifyTurns(gameTurns);
+        // 一定不要在这里改gameturns。
+        // 不然鼠标点两下就加了。
         moreMove();
         tipsMove.ChangeFrom((ChessPosition) {-1, -1});
     }

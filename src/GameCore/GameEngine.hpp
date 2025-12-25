@@ -12,7 +12,7 @@ public:
     ~GameEngine();
 
     bool GetPlayer();// 再敲一遍 懒得重整合了
-    void ChangePlayer(int player);// 轮换
+    void ChangePlayer(bool player);// 轮换
     const GameState& GetState();
 
     bool ValidPos(const ChessPosition &pos) const;// 判断越界和是不是空位

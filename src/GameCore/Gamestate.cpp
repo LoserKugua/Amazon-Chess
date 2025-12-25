@@ -7,7 +7,7 @@ GameState::GameState()
     gameTurns = 0;
 }
 
-void GameState::ChangePlayer(int player) {
+void GameState::ChangePlayer(bool player) {
     // qDebug() << "currentplayer" << CurrentPlayer;
     CurrentPlayer = player;
     // qDebug() << "currentplayer" << CurrentPlayer;
@@ -274,6 +274,8 @@ int GameState::LoadSave(QString filePath) {
     }
     // 再是按历史记录下棋 看看得到的盘一不一样
     GameBoard board2;
+    // 黑比白动的少 有问题
+    if(HistoryMoveBlack.size() < HistoryMoveWhite.size()) return 6;
     for(size_t i = 0; i < HistoryMoveWhite.size(); ++i) {
         // 黑下一步
         ChessMove movei = HistoryMoveBlack[i];
@@ -291,7 +293,7 @@ int GameState::LoadSave(QString filePath) {
         board2.modify(movei.GetTo(), 1);
         board2.modify(movei.GetArrow(), 3);
 
-        board2.BoardDebug();
+        // board2.BoardDebug();
         // 白下一步
         movei = HistoryMoveWhite[i];
         if(!board2.IsWhite(movei.GetFrom()) || !board2.IsAvailable(movei.GetTo())) {
@@ -305,10 +307,10 @@ int GameState::LoadSave(QString filePath) {
         board2.modify(movei.GetTo(), 2);
         board2.modify(movei.GetArrow(), 3);
 
-        board2.BoardDebug();
+        // board2.BoardDebug();
     }
     if(HistoryMoveWhite.size() != HistoryMoveBlack.size()) {
-        ChessMove movei = HistoryMoveBlack[HistoryMoveBlack.size() - 1];
+        ChessMove movei = HistoryMoveBlack.back();
         if(!board2.IsBlack(movei.GetFrom()) || !board2.IsAvailable(movei.GetTo())) {
             return 5;
         }
@@ -321,7 +323,7 @@ int GameState::LoadSave(QString filePath) {
         board2.modify(movei.GetArrow(), 3);
     }
     if(!(board2 == Board)) {
-        board2.BoardDebug();
+        // board2.BoardDebug();
         return 5;
     }
     save.close();
@@ -334,7 +336,7 @@ ChessMove GameState::Undo() {
         return move;
     }
     if(CurrentPlayer == 1) {// 黑方
-        move = HistoryMoveBlack[HistoryMoveBlack.size() - 1];
+        move = HistoryMoveBlack.back();
         int index = Board.GetBlackIndex(move.GetTo());
         Board.modifyBlack(move.GetFrom(), index);
         Board.modify(move.GetTo(), 0);
@@ -344,7 +346,7 @@ ChessMove GameState::Undo() {
         CurrentPlayer = 0;
     }
     else {
-        move = HistoryMoveWhite[HistoryMoveWhite.size() - 1];
+        move = HistoryMoveWhite.back();
         int index = Board.GetWhiteIndex(move.GetTo());
         Board.modifyWhite(move.GetFrom(), index);
         Board.modify(move.GetTo(), 0);

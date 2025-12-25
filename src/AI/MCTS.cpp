@@ -273,14 +273,14 @@ ChessMove MCTS::findBestMove() { // MCTS 搜索主循环
         if (totalSimulations > 0 && simulations_done >= totalSimulations) {
             auto current_time = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time);
-            qDebug() << totalSimulations << "次迭代: " << duration.count() << "ms";
+            // qDebug() << totalSimulations << "次迭代: " << duration.count() << "ms";
             break;
         }
         if (timeLimitMs > 0) {
             auto current_time = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time);
             if (duration.count() >= timeLimitMs) {
-                qDebug() << simulations_done << "次迭代: " << duration.count() << "ms";
+                // qDebug() << simulations_done << "次迭代: " << duration.count() << "ms";
                 break;
             }
         }
@@ -325,8 +325,8 @@ ChessMove MCTS::findBestMove() { // MCTS 搜索主循环
         } // 多个胜率最大的我们就选访问最多的
     }
     if (best_child) {
-        qDebug() << "visit:" << best_child->visits;
-        qDebug() << "winrate:" << max_win_rate;
+        // qDebug() << "visit:" << best_child->visits;
+        // qDebug() << "winrate:" << max_win_rate;
         return best_child->move;
     } else { // 出bug了 瞎选
         std::vector<ChessMove> valid_moves;

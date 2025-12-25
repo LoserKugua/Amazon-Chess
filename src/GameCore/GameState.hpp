@@ -24,7 +24,7 @@ public:
     GameState();
     virtual ~GameState() = default;
     bool GetPlayer();// 获取当前下棋者
-    void ChangePlayer(int player);// 轮换
+    void ChangePlayer(bool player);// 轮换
     const GameBoard& GetBoard() const;
     void MoveBlack(ChessMove move);// 黑棋历史变更
     void MoveWhite(ChessMove move);// 白棋历史变更

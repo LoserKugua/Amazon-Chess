@@ -12,6 +12,9 @@ private:
     void moreMove() override;
     void moreUndo() override;
     bool gameStart() override;
+    
+private slots:
+    void ApplyAImove(ChessMove bestMove); // 多线程用的
 
 public:
     explicit OnePlayer(QWidget *parent = nullptr, bool AIPlayer = false);

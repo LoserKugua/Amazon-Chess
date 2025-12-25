@@ -53,7 +53,8 @@ void ChessGrid::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
     if (state == "black" || state == "blackChosen" || 
         state == "white" || state == "whiteChosen" || 
         state == "whiteTP" || state == "blackTP" ||
-        state == "arrow" || state == "arrowTP") {
+        state == "arrow" || state == "arrowTP" ||
+        state == "arrowRed") {
         QRectF r = rect(); // 大小和位置
         qreal margin = r.width() * 0.1; // 边距
         QRectF pieceRect(r.x() + margin, r.y() + margin,
@@ -74,7 +75,7 @@ void ChessGrid::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
         painter->drawEllipse(shadowRect);
 
         // 主体
-        if(state == "blackChosen" || state == "whiteChosen") {
+        if(state == "blackChosen" || state == "whiteChosen" || state == "arrowRed") {
             painter->setPen(QPen(Qt::red, 3));
         }
         else {
@@ -85,7 +86,7 @@ void ChessGrid::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
         if(state == "black" || state == "blackChosen" || state == "blackTP") fillColor = Qt::black;
         else if(state == "white" || state == "whiteChosen" || state == "whiteTP") fillColor = Qt::white;
         else fillColor = Qt::blue;
-        if(state == "blackTP" || state == "whiteTP" || state == "arrowTP") fillColor.setAlpha(80);
+        if(state == "blackTP" || state == "whiteTP" || state == "arrowTP" || state == "arrowRed") fillColor.setAlpha(80);
         painter->setBrush(QBrush(fillColor));
         painter->drawEllipse(pieceRect);
     }
