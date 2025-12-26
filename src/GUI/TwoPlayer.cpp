@@ -288,7 +288,7 @@ void TwoPlayer::on_tipsButton_clicked() {
     }
     if(tipsMove.GetFrom().x == -1) {
         AIGameState nowState(Engine_2->GetState());
-        MCTS mcts(nowState, 10000 + gameTurns * 300, 1000);
+        MCTS mcts(nowState, 1000LL);
         tipsMove = mcts.findBestMove();
     }
     if(boardGrids[tipsMove.GetFrom().x][tipsMove.GetFrom().y]->getState() == "black") {
@@ -310,8 +310,8 @@ void TwoPlayer::on_tipsButton_clicked() {
 
 void TwoPlayer::gameOverJudge() {
     int flag = Engine_2->GameOver();
-    modeText->setText(modeTextEnd);
     if(flag == 0) return;
+    modeText->setText(modeTextEnd);
     if(flag == 1) {
         QMessageBox::information(this, "游戏结束", "恭喜黑方获胜！", QMessageBox::Ok);
         isGameOver = true;
