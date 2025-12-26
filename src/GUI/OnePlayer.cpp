@@ -74,7 +74,7 @@ void OnePlayer::AImove() {
     
     QFuture<ChessMove> future = QtConcurrent::run([nowState, nowTurns]() {
         // nowState.GetBoard().BoardDebug();
-        MCTS mcts(nowState, 10000 + nowTurns * 100, 1000);
+        MCTS mcts(nowState, 1000LL);
         return mcts.findBestMove();
     });
     watcher->setFuture(future); // watcher负责监视mcts算完没有

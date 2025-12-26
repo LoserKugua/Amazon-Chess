@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QPushButton>
+#include <QLabel>
 
 class GameMenu : public QWidget
 {
@@ -14,6 +15,7 @@ public:
     QPushButton *button1_0; // 单人模式 人机先手
     QPushButton *button1_1; // 单人模式 人机后手
     QPushButton *button2; // 双人模式
+    QLabel *menuTitle;
     explicit GameMenu(QWidget *parent = nullptr);
     ~GameMenu();
 };

@@ -23,7 +23,7 @@ protected:
 public:
     GameState();
     virtual ~GameState() = default;
-    bool GetPlayer();// 获取当前下棋者
+    bool GetPlayer() const;// 获取当前下棋者
     void ChangePlayer(bool player);// 轮换
     const GameBoard& GetBoard() const;
     void MoveBlack(ChessMove move);// 黑棋历史变更
@@ -37,6 +37,22 @@ public:
 
     int LoadSave(QString filePath);
     int GenerateSave(QString filePath);
+};
+
+class AIGameState : public GameState {
+// 构造函数默认继承了
+public:
+    AIGameState(const GameState &state_2);
+    AIGameState& operator = (const AIGameState &state); // 只用于AI 所以不带历史记录
+
+    void getValidMoves(std::vector<ChessMove>& result);
+    bool validPos(const ChessPosition &pos) const;// 判断越界和是不是空位
+    void getValidPoses(const ChessPosition &pos, std::vector<ChessPosition>& result); // 获取所有可移动位置 皇后移动位
+    void getValidArrows(const ChessPosition &pos, std::vector<ChessPosition>& result); // 获取所有可放障碍位 临近八方向
+
+    void makeMove(const ChessMove &move);
+    void undoMove(const ChessMove &move2);
+    int getGameResult();// 1黑赢2白赢
 };
 
 #endif

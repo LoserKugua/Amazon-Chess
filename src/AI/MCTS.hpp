@@ -5,22 +5,6 @@
 #include <random>
 #include <chrono>
 
-class AIGameState : public GameState {
-// 构造函数默认继承了
-public:
-    AIGameState(const GameState &state_2);
-    AIGameState& operator = (const AIGameState &state); // 只用于AI 所以不带历史记录
-
-    void getValidMoves(std::vector<ChessMove>& result);
-    bool validPos(const ChessPosition &pos) const;// 判断越界和是不是空位
-    void getValidPoses(const ChessPosition &pos, std::vector<ChessPosition>& result); // 获取所有可移动位置 皇后移动位
-    void getValidArrows(const ChessPosition &pos, std::vector<ChessPosition>& result); // 获取所有可放障碍位 临近八方向
-
-    void makeMove(const ChessMove &move);
-    void undoMove(const ChessMove &move2);
-    int getGameResult();// 1黑赢2白赢
-};
-
 struct MCTSNode { // MCTS 节点结构体
     AIGameState state;
     ChessMove move;
@@ -48,13 +32,12 @@ struct MCTSNode { // MCTS 节点结构体
 
 class MCTS {
 public:
-    MCTS(const AIGameState& initial_state, int num_simulations, long long time_limit_ms = 0);
+    MCTS(const AIGameState& initial_state, long long time_limit_ms = 0);
     ~MCTS();
     ChessMove findBestMove();
 
 private:
     MCTSNode* root; // MCTS 树的根节点
-    int totalSimulations; // 最大模拟次数
     long long timeLimitMs; // 时间限制 (单位ms)
     std::mt19937 randomEngine;
 };

@@ -17,6 +17,7 @@ protected:
     GameEngine* Engine_2; // 游戏引擎
     QString modeTextBlack; // 游戏模式提示的
     QString modeTextWhite;
+    QString modeTextEnd; // 游戏结束label
     
     int placeStage; // 放置阶段:0没选棋子 1准备落棋子 2:放箭!
     int gameTurns; // 游戏进行轮数

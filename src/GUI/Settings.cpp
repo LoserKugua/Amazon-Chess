@@ -51,8 +51,8 @@ void Settings::setupUI() {
         lastOptionsButton = bgOptions;
     });
     
-    // setupMusicUI();
-    musicSettings = new QWidget(this);
+    setupMusicUI();
+    // musicSettings = new QWidget(this);
     setupBgUI();
 
     setStack = new QStackedWidget(this);

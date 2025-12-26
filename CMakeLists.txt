@@ -9,7 +9,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOMOC ON) 
 
 # 查找 Qt 6 库
-find_package(Qt6 COMPONENTS Widgets Gui Multimedia REQUIRED)
+find_package(Qt6 COMPONENTS Widgets Gui Multimedia Concurrent REQUIRED)
 
 set(GAME_CORE_SRC
     src/GameCore/GameEngine.cpp
@@ -49,7 +49,7 @@ set_target_properties(AmazonChess PROPERTIES WIN32_EXECUTABLE TRUE)
 
 target_compile_features(AmazonChess PRIVATE cxx_std_17)
 
-target_link_libraries(AmazonChess PRIVATE Qt6::Widgets Qt6::Gui Qt6::Multimedia)
+target_link_libraries(AmazonChess PRIVATE Qt6::Widgets Qt6::Gui Qt6::Multimedia Qt6::Concurrent)
 
 set_property(TARGET AmazonChess PROPERTY CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set_property(TARGET AmazonChess PROPERTY CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

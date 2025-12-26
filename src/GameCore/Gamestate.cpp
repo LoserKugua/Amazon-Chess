@@ -13,7 +13,7 @@ void GameState::ChangePlayer(bool player) {
     // qDebug() << "currentplayer" << CurrentPlayer;
 }
 
-bool GameState::GetPlayer() {
+bool GameState::GetPlayer() const {
     return CurrentPlayer;
 }
 
@@ -356,4 +356,162 @@ ChessMove GameState::Undo() {
         CurrentPlayer = 1;
     }
     return move;
+}
+
+
+AIGameState::AIGameState(const GameState& state_2)
+    : GameState(state_2) {
+
+}
+
+AIGameState& AIGameState::operator = (const AIGameState &state) {
+    if(this != &state) {
+        Board = state.Board;
+        CurrentPlayer = state.CurrentPlayer;
+        GameOverTag = state.GameOverTag;
+    }
+    return *this;
+}
+
+bool AIGameState::validPos(const ChessPosition &pos) const {
+    // 越界或被占了
+    if(pos.x < 0 || pos.y < 0 || pos.x > 7 || pos.y > 7) return false;
+    return Board.IsAvailable(pos);
+}
+
+void AIGameState::getValidArrows(const ChessPosition &pos, std::vector<ChessPosition>& result) {
+    // 八个方向移动
+    result.clear();
+    for(int i = 0; i <= 7; ++i) {
+        int Tx = pos.x + CheckDx[i];
+        int Ty = pos.y + CheckDy[i];
+        if(validPos((ChessPosition) {Tx, Ty})) {
+            result.emplace_back((ChessPosition) {Tx, Ty});
+        }
+    }
+}
+
+void AIGameState::getValidPoses(const ChessPosition &pos, std::vector<ChessPosition>& result) {
+    // 八个方向随机移动
+    result.clear();
+    for(int i = 0; i <= 7; ++i) {
+        int Tx = pos.x + CheckDx[i];
+        int Ty = pos.y + CheckDy[i];
+        while(validPos((ChessPosition) {Tx, Ty})) {
+            result.emplace_back((ChessPosition) {Tx, Ty});
+            Tx += CheckDx[i];
+            Ty += CheckDy[i];
+        }
+    }
+}
+
+void AIGameState::getValidMoves(std::vector<ChessMove>& result) {
+    result.clear();
+    if(CurrentPlayer == 0) { // 0到黑
+        ChessPosition blackPos;
+        std::vector<ChessPosition> queenPoses;
+        std::vector<ChessPosition> arrowPoses;
+        for(int i = 0; i <= 3; ++i) {
+            blackPos = Board.GetBlackPos(i);
+            getValidPoses(blackPos, queenPoses);
+            for(auto pos : queenPoses) { // 暂时模拟一下移动，然后撤销
+                Board.modify(blackPos, 0);
+                Board.modify(pos, 1);
+                getValidPoses(pos, arrowPoses);
+                result.reserve(result.size() + arrowPoses.size());
+                for(auto pos_a : arrowPoses) {
+                    ChessMove move(blackPos, pos, pos_a);
+                    result.emplace_back(move);
+                }
+                Board.modify(blackPos, 1);
+                Board.modify(pos, 0);
+            }
+        }
+    }
+    else { // 1到白
+        ChessPosition whitePos;
+        std::vector<ChessPosition> queenPoses;
+        std::vector<ChessPosition> arrowPoses;
+        for(int i = 0; i <= 3; ++i) {
+            whitePos = Board.GetWhitePos(i);
+            getValidPoses(whitePos, queenPoses);
+            for(auto pos : queenPoses) {
+                Board.modify(whitePos, 0);
+                Board.modify(pos, 2);
+                getValidPoses(pos, arrowPoses);
+                result.reserve(result.size() + arrowPoses.size());
+                for(auto pos_a : arrowPoses) {
+                    ChessMove move(whitePos, pos, pos_a);
+                    result.emplace_back(move);
+                }
+                Board.modify(whitePos, 2);
+                Board.modify(pos, 0);
+            }
+        }
+    }
+}
+
+void AIGameState::makeMove(const ChessMove &move) {
+    if(CurrentPlayer == 0) {
+        Board.MoveBlack(move);
+        Board.modify(move.GetFrom(), 0);
+        Board.modify(move.GetTo(), 1);
+        Board.modify(move.GetArrow(), 3);
+        CurrentPlayer = 1;
+    }
+    else {
+        Board.MoveWhite(move);
+        Board.modify(move.GetFrom(), 0);
+        Board.modify(move.GetTo(), 2);
+        Board.modify(move.GetArrow(), 3);
+        CurrentPlayer = 0;
+    }
+}
+
+void AIGameState::undoMove(const ChessMove &move2) { // 撤销移动
+    ChessMove move(move2.GetTo(), move2.GetFrom(), move2.GetArrow());
+    GameOverTag = false;// 虽然我也不知道这个tag有没有用
+    if(CurrentPlayer == 1) {
+        Board.MoveBlack(move);
+        Board.modify(move.GetFrom(), 0);
+        Board.modify(move.GetTo(), 1);
+        Board.modify(move.GetArrow(), 0);
+        CurrentPlayer = 0;
+    }
+    else {
+        Board.MoveWhite(move);
+        Board.modify(move.GetFrom(), 0);
+        Board.modify(move.GetTo(), 2);
+        Board.modify(move.GetArrow(), 0);
+        CurrentPlayer = 1;
+    }
+}
+
+int AIGameState::getGameResult() {// 1黑赢2白赢
+    bool blackFlag = true;// 标记黑输了吗
+    std::vector<ChessPosition> Move_8_dir;
+    for(int i = 0; i <= 3; ++i) {
+        getValidArrows(Board.GetBlackPos(i), Move_8_dir);
+        if(Move_8_dir.size() != 0) {
+            blackFlag = false;
+            break;
+        }
+    }
+    if(blackFlag) {
+        GameOverTag = true;
+        return 2;
+    }
+    bool whiteFlag = true;// 标记白输了吗
+    for(int i = 0; i <= 3; ++i) {
+        getValidArrows(Board.GetBlackPos(i), Move_8_dir);
+        if(Move_8_dir.size() != 0) {
+            whiteFlag = false;
+            break;
+        }
+    }
+    if(whiteFlag) {
+        GameOverTag = true;
+        return 1;
+    }
+    return 0;// 都没赢
 }
